@@ -22,8 +22,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, navigate }) => {
       {/* HEADER */}
       <header className="h-16 border-b border-[#2A2A2A] bg-[#0A0A0A] px-6 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-               <div className="w-8 h-8 bg-white text-black flex items-center justify-center rounded font-bold font-['Orbitron']">RM</div>
-               <h1 className="text-xl font-bold font-['Orbitron'] tracking-tighter">RACEMIND <span className="text-[#00D9FF]">3D</span></h1>
+               <div className="w-8 h-8 bg-white text-black flex items-center justify-center rounded font-bold font-['Orbitron']">TR</div>
+               <h1 className="text-xl font-bold font-['Orbitron'] tracking-tighter">Track<span className="text-[#00D9FF]">n</span>Race</h1>
           </div>
           <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-1 text-xs font-mono text-zinc-500">

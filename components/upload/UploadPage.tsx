@@ -1,125 +1,88 @@
-
-import React, { useState } from 'react';
-import { UploadCloud, FileText, CheckCircle, AlertTriangle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { api } from '../../services/api';
+import { Track, UploadedSession, UploadResult } from '../../types';
+import { UploadCloud, CheckCircle2 } from 'lucide-react';
 
 const UploadPage = ({ navigate }: { navigate: (p: string) => void }) => {
-    const [dragActive, setDragActive] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
-    const [uploading, setUploading] = useState(false);
-    const [completed, setCompleted] = useState(false);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [trackId, setTrackId] = useState('cota');
+  const [file, setFile] = useState<File | null>(null);
+  const [session, setSession] = useState<UploadedSession | null>(null);
+  const [result, setResult] = useState<UploadResult | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const handleDrag = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
-        }
-    };
+  useEffect(() => {
+    api.tracks.list().then(setTracks);
+  }, []);
 
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragActive(false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            setFile(e.dataTransfer.files[0]);
-        }
-    };
+  const handleUpload = async () => {
+    if (!file) return;
+    setLoading(true);
+    const created = await api.uploads.create(file, trackId);
+    setSession(created);
+    localStorage.setItem('lastSessionId', created.id);
+    const res = await api.uploads.result(created.id);
+    if (res) setResult(res);
+    setLoading(false);
+  };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
-        }
-    };
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-xs text-[#8fb5ff] uppercase font-semibold">Upload telemetry</p>
+        <h1 className="text-3xl font-bold font-['Orbitron']">Upload & compare</h1>
+        <p className="text-zinc-400 text-sm">Maps to /api/upload-telemetry and results/status endpoints.</p>
+      </div>
 
-    const handleUpload = async () => {
-        if (!file) return;
-        setUploading(true);
-        try {
-            await api.sessions.upload(file, 't01'); // Mock track ID
-            setUploading(false);
-            setCompleted(true);
-            setTimeout(() => navigate('/tracks/t01/telemetry'), 1500); // Redirect to telemetry
-        } catch (e) {
-            console.error(e);
-            setUploading(false);
-        }
-    };
-
-    return (
-        <div className="max-w-3xl mx-auto py-12 animate-in fade-in duration-500">
-            <div className="text-center mb-10">
-                <h1 className="text-3xl font-bold text-white font-['Orbitron'] mb-3">UPLOAD SESSION DATA</h1>
-                <p className="text-zinc-400">Supported formats: CSV, JSON, MoTeC CSV. Max file size: 50MB.</p>
-            </div>
-
-            <div 
-                className={`
-                    border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300
-                    ${dragActive ? 'border-[#00D9FF] bg-[#00D9FF]/5 scale-105' : 'border-[#333] bg-[#0A0A0A]'}
-                    ${completed ? 'border-green-500' : ''}
-                `}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
+      <div className="bg-[#0b0f1a] border border-[#1f2a44] rounded-2xl p-6 space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <label className="flex-1 space-y-2 text-sm">
+            <span className="text-zinc-400">Choose track</span>
+            <select value={trackId} onChange={(e) => setTrackId(e.target.value)} className="w-full bg-[#0f182f] border border-[#1f2a44] rounded-lg px-3 py-2">
+              {tracks.map((track) => (
+                <option key={track.id} value={track.id}>
+                  {track.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex-1 space-y-2 text-sm">
+            <span className="text-zinc-400">Telemetry file</span>
+            <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full bg-[#0f182f] border border-[#1f2a44] rounded-lg px-3 py-2" />
+          </label>
+          <div className="flex items-end">
+            <button
+              onClick={handleUpload}
+              disabled={!file || loading}
+              className="bg-[#72E8FF] text-black font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#9ff0ff] disabled:opacity-50"
             >
-                {!file && !completed && (
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-20 h-20 bg-[#111] rounded-full flex items-center justify-center text-zinc-500 mb-2">
-                            <UploadCloud size={32} />
-                        </div>
-                        <h3 className="text-xl font-bold text-white">Drag & Drop Telemetry File</h3>
-                        <p className="text-zinc-500 text-sm mb-4">or click to browse from your computer</p>
-                        <input type="file" id="file-upload" className="hidden" onChange={handleChange} accept=".csv,.json" />
-                        <label htmlFor="file-upload" className="bg-white text-black font-bold px-8 py-3 rounded-xl cursor-pointer hover:bg-zinc-200 transition-colors">
-                            BROWSE FILES
-                        </label>
-                    </div>
-                )}
-
-                {file && !completed && (
-                    <div className="flex flex-col items-center gap-6">
-                         <div className="w-16 h-16 bg-[#111] rounded-xl flex items-center justify-center text-white mb-2">
-                            <FileText size={32} />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-white">{file.name}</h3>
-                            <p className="text-zinc-500 text-sm">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                        <button 
-                            onClick={handleUpload} 
-                            disabled={uploading}
-                            className="bg-[#00D9FF] text-black font-bold px-12 py-3 rounded-xl hover:bg-[#00b8d4] disabled:opacity-50 flex items-center gap-2"
-                        >
-                            {uploading ? 'PROCESSING...' : 'START UPLOAD'}
-                        </button>
-                    </div>
-                )}
-
-                {completed && (
-                    <div className="flex flex-col items-center gap-4 animate-in zoom-in duration-300">
-                        <div className="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-2">
-                            <CheckCircle size={40} />
-                        </div>
-                        <h3 className="text-xl font-bold text-white">Upload Complete!</h3>
-                        <p className="text-zinc-500">Redirecting to analysis dashboard...</p>
-                    </div>
-                )}
-            </div>
-
-            <div className="mt-8 flex gap-4 bg-[#111] p-4 rounded-xl border border-zinc-800">
-                <AlertTriangle className="text-yellow-500 flex-shrink-0" />
-                <div className="text-sm text-zinc-400">
-                    <strong className="text-white block mb-1">Privacy Notice</strong>
-                    Uploaded telemetry data is processed securely and used only for generating your performance report. Raw data is discarded after processing unless you choose to save it to your profile.
-                </div>
-            </div>
+              <UploadCloud size={16} /> {loading ? 'Uploading…' : 'Start upload'}
+            </button>
+          </div>
         </div>
-    );
+        {session && (
+          <div className="text-sm text-zinc-300">Session {session.id} • Status {session.status}</div>
+        )}
+      </div>
+
+      {result && (
+        <div className="bg-[#0b0f1a] border border-[#1f2a44] rounded-2xl p-6 space-y-3">
+          <div className="flex items-center gap-2 text-[#8fb5ff] text-xs font-semibold uppercase">
+            <CheckCircle2 size={14} /> Results ready
+          </div>
+          <p className="text-sm text-zinc-300">Leaderboard delta: {result.leaderboardDelta} positions</p>
+          <ul className="list-disc ml-5 text-sm text-zinc-300 space-y-1">
+            {result.coaching.map((tip) => (
+              <li key={tip}>{tip}</li>
+            ))}
+          </ul>
+          <button className="text-xs text-[#72E8FF]" onClick={() => navigate('/upload/result')}>
+            Open result page
+          </button>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default UploadPage;

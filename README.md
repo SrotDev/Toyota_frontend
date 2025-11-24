@@ -1,20 +1,22 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Track n Race
 
-# Run and deploy your AI Studio app
+Track n Race is a lightweight frontend aligned to the Django backend architecture described for tracks, laps, sectors, telemetry points, ideal behaviors, and upload flows. The app keeps only the components required to browse tracks, review lap and sector summaries, view ideal telemetry, compare uploads, and preview leaderboard outputs.
 
-This contains everything you need to run your app locally.
+## Run locally
 
-View your app in AI Studio: https://ai.studio/apps/drive/1ykPnjIjRnIBgSX5yyrrqJNiVbK3Z85e8
+1. Install dependencies
+   ```bash
+   npm install
+   ```
+2. Start the dev server
+   ```bash
+   npm run dev
+   ```
 
-## Run Locally
+## Feature map
+- **Tracks**: list, detail map, lap table, sector radar, and telemetry navigation.
+- **Telemetry**: ideal curves, user vs ideal overlay, turn-level views, heatmap placeholders, and racing line overlays.
+- **Uploads**: ingest telemetry files, view async status/result, and persist the last session locally.
+- **Predictions**: client-side lap time prediction utility matching `/api/predict/lap-time/`.
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Mock data mirrors the provided REST endpoints so pages can be wired to a future Django API without changing the UI structure.

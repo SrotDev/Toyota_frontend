@@ -1,7 +1,30 @@
 
 import React from 'react';
-import { STRATEGY_OPTIONS } from '../data';
 import { Flag, ShieldCheck, AlertTriangle, Flame, Zap } from 'lucide-react';
+
+const STRATEGY_OPTIONS = [
+  {
+    id: 'A',
+    name: 'Aggressive',
+    phases: ['PUSH', 'PUSH', 'SAVE'],
+    risk: 'High',
+    advantage: 'Max pace'
+  },
+  {
+    id: 'B',
+    name: 'Balanced',
+    phases: ['BALANCED', 'BALANCED'],
+    risk: 'Medium',
+    advantage: 'Consistent performance'
+  },
+  {
+    id: 'C',
+    name: 'Conservative',
+    phases: ['SAVE', 'SAVE', 'BALANCED'],
+    risk: 'Low',
+    advantage: 'Tire longevity'
+  }
+];
 
 const StrategyWindows: React.FC = () => {
   

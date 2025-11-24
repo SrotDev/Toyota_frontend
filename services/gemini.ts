@@ -15,7 +15,7 @@ export const getRaceEngineerResponse = async (userQuery: string, history: any[],
   const bestLap = laps.find(l => l.is_personal_best);
   const consistency = laps.reduce((acc, lap) => acc + lap.mistakes, 0);
 
-  const systemInstruction = `You are a world-class Race Engineer using the Racemind 3D Telemetry System.
+  const systemInstruction = `You are a world-class Race Engineer using the Track n Race Telemetry System.
   
   Current Context:
   - Track: ${track?.name || 'Unknown'}
