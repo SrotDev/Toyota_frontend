@@ -9,7 +9,7 @@ const TelemetryHeatmap = ({ trackId }: { trackId: string }) => {
 
   useEffect(() => {
     api.tracks.details(trackId).then((t) => setTrack(t || null));
-    api.idealBehavior.list(trackId).then(setBehaviors);
+    (api as any).idealBehavior.list(trackId).then(setBehaviors);
   }, [trackId]);
 
   return (

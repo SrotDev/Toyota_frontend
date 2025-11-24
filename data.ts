@@ -1,16 +1,7 @@
 import { IdealBehavior, Lap, LeaderboardEntry, Sector, TelemetryPoint, Track, UploadedSession, UploadResult } from './types';
 
 export const tracks: Track[] = [
-  {
-    id: 'cota',
-    name: 'Circuit of the Americas',
-    location: 'Austin, USA',
-    mapImage:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Austin_circuit.svg/1200px-Austin_circuit.svg.png',
-    totalLaps: 56,
-    lengthKm: 5.513,
-    turns: 20,
-  },
+  
   {
     id: 'barber',
     name: 'Barber Motorsports Park',
@@ -21,16 +12,7 @@ export const tracks: Track[] = [
     lengthKm: 5.891,
     turns: 18,
   },
-  {
-    id: 'suzuka',
-    name: 'Suzuka Circuit',
-    location: 'Suzuka, Japan',
-    mapImage:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Suzuka_circuit_map_2005.svg/1200px-Suzuka_circuit_map_2005.svg.png',
-    totalLaps: 53,
-    lengthKm: 5.807,
-    turns: 18,
-  },
+  
 ];
 
 const laps: Lap[] = [];
@@ -69,9 +51,8 @@ const buildLapSet = (trackId: string, baseTime: number) => {
   }
 };
 
-buildLapSet('cota', 137.2);
-buildLapSet('silverstone', 100.4);
-buildLapSet('suzuka', 95.8);
+buildLapSet('barber', 100.4);
+
 
 const makeCurve = (turnNumber: number, amplitude: number) =>
   Array.from({ length: 12 }).map((_, idx) =>
@@ -116,7 +97,7 @@ const buildTelemetrySeries = (trackId: string, sectorId: string, speedOffset = 0
 
 export const idealTelemetry: Record<string, TelemetryPoint[]> = {
   cota: buildTelemetrySeries('cota', 'cota-ideal', 0),
-  silverstone: buildTelemetrySeries('silverstone', 'silverstone-ideal', 6),
+  barber: buildTelemetrySeries('barber', 'barber-ideal', 6),
   suzuka: buildTelemetrySeries('suzuka', 'suzuka-ideal', 3),
 };
 
@@ -126,11 +107,11 @@ export const idealTurnTelemetry: Record<string, Record<number, TelemetryPoint[]>
     11: buildTelemetrySeries('cota', 'cota-turn-11', 4),
     16: buildTelemetrySeries('cota', 'cota-turn-16', 2),
   },
-  silverstone: {
-    4: buildTelemetrySeries('silverstone', 'silverstone-turn-4', -2),
-    11: buildTelemetrySeries('silverstone', 'silverstone-turn-11', 3),
-    16: buildTelemetrySeries('silverstone', 'silverstone-turn-16', 5),
-  },
+  barber: {
+    4: buildTelemetrySeries('barber', 'barber-turn-4', -2),
+    11: buildTelemetrySeries('barber', 'barber-turn-11', 3),
+    16: buildTelemetrySeries('barber', 'barber-turn-16', 5),
+    },
   suzuka: {
     4: buildTelemetrySeries('suzuka', 'suzuka-turn-4', 0),
     11: buildTelemetrySeries('suzuka', 'suzuka-turn-11', 2),
@@ -152,5 +133,67 @@ export const leaderboard: LeaderboardEntry[] = tracks.map((track) => {
 export const uploadedSessions: UploadedSession[] = [];
 
 export const uploadResults: UploadResult[] = [];
+
+export const DRIVERS: Record<string, { id: string; code: string; name: string; vehicle: string; teamColor: string; headshot?: string }> = {
+  d01: { id: 'd01', code: 'ALP', name: 'Alex Parker', vehicle: 'GT3 Evo', teamColor: '#00D9FF' },
+  d02: { id: 'd02', code: 'RAV', name: 'Ravi Patel', vehicle: 'GT3 Evo', teamColor: '#F97316' },
+  d03: { id: 'd03', code: 'LIA', name: 'Lia Chen', vehicle: 'GT3 Evo', teamColor: '#A855F7' },
+};
+
+const buildLapHistory = (driverId: string, base: number) =>
+  Array.from({ length: 15 }).map((_, idx) => ({
+    driverId,
+    lap: idx + 1,
+    time: parseFloat((base + Math.sin(idx * 0.6) * 0.6 + idx * 0.02).toFixed(3)),
+  }));
+
+export const LAP_HISTORY = [...buildLapHistory('d01', 90.4), ...buildLapHistory('d02', 91.1), ...buildLapHistory('d03', 92.3)];
+
+export const RACE_RESULTS = [
+  { driverId: 'd01', position: 1, fastestLap: '1:30.412' },
+  { driverId: 'd02', position: 2, fastestLap: '1:30.998' },
+  { driverId: 'd03', position: 3, fastestLap: '1:31.203' },
+];
+
+export const POLE_LAP = { driverId: 'd01', time: '1:30.201' };
+
+export const TRACK_INCIDENTS = [
+  { lap: 3, driverId: 'd03', type: 'off-track', severity: 'minor', note: 'Wide at Turn 1' },
+  { lap: 7, driverId: 'd02', type: 'spin', severity: 'major', note: 'Looped at Turn 11' },
+];
+
+export const CURRENT_WEATHER = {
+  airTemp: 26,
+  trackTemp: 31,
+  windSpeed: 9,
+  condition: 'Partly Cloudy',
+};
+
+export const generateTelemetry = (driverId: string, lap: number) => {
+  return Array.from({ length: 120 }).map((_, idx) => {
+    const progress = idx / 119;
+    return {
+      distance: parseFloat((progress * 5.5).toFixed(2)),
+      speed: 120 + Math.sin(progress * Math.PI) * 60 + (driverId === 'd01' ? 6 : 0) - lap * 0.15,
+      throttle: Math.max(0, Math.min(100, 50 + progress * 50)),
+      brake: progress < 0.25 ? Math.round((0.25 - progress) * 240) : 0,
+      rpm: 6200 + Math.sin(progress * Math.PI) * 2200,
+      gear: Math.min(8, 2 + Math.floor(progress * 6)),
+      x: Math.round(Math.cos(progress * Math.PI * 2) * 420 + 500),
+      y: Math.round(Math.sin(progress * Math.PI * 2) * 320 + 400),
+    };
+  });
+};
+
+export const getDriverStats = (driverId: string) => {
+  const history = LAP_HISTORY.filter((lap) => lap.driverId === driverId);
+  const average = history.reduce((sum, lap) => sum + lap.time, 0) / history.length;
+  const consistency = Math.max(1, 10 - history.reduce((sum, lap) => sum + Math.abs(lap.time - average), 0) / history.length);
+  return {
+    speed: Math.round(90 + (driverId === 'd01' ? 8 : driverId === 'd02' ? 4 : 0)),
+    consistency: parseFloat(consistency.toFixed(1)),
+    stressEstimate: 40 + (driverId === 'd02' ? 8 : 0),
+  };
+};
 
 export { laps, sectors };
