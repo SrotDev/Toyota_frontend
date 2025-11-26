@@ -1,0 +1,9 @@
+{
+  "/tracks/[id]/page": "app/tracks/[id]/page.js",
+  "/tracks/[id]/telemetry/ideal/page": "app/tracks/[id]/telemetry/ideal/page.js",
+  "/tracks/page": "app/tracks/page.js",
+  "/tracks/[id]/telemetry/racing-line/page": "app/tracks/[id]/telemetry/racing-line/page.js",
+  "/page": "app/page.js",
+  "/tracks/[id]/laps/page": "app/tracks/[id]/laps/page.js",
+  "/tracks/[id]/sectors/page": "app/tracks/[id]/sectors/page.js"
+}
